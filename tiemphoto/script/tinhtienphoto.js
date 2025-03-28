@@ -64,3 +64,49 @@ $('#refesh-data-slide').on('click', function(){
     $("#photo4Slide").prop("checked",false);
     $("#photo6Slide").prop("checked",false);
 });
+
+$('#soTo, #donGia, #soBan').on('change', function(){
+    var soTo = $('#soTo').val();
+    var donGia = $('#donGia').val();
+    var soBan = $('#soBan').val();
+    var thanhTien = soTo * donGia * soBan;
+    $('#thanhTien').val(Number(thanhTien).toLocaleString("vi-VN"));
+});
+
+$('#soTrangPhoto, #donGiaPhoto, #soBanPhoto, #photoBinhThuong, #photo2Slide, #photo4Slide, #photo6Slide, #photoBia, #photoBiaKieng').on('change', function(){
+    //Nếu chọn photo 2 mặt thì đặt biến photo2Mat = 2, ngược lại photo2Mat = 1
+    var inputPhoto2Mat = $("#photo2Mat").prop("checked");
+    var photo2Mat = 1;
+    if(inputPhoto2Mat){
+        photo2Mat = 2;
+    }      
+    var slide = 1;
+    if($("#photoBinhThuong").prop("checked")){
+        slide = 1;
+    }else if($("#photo2Slide").prop("checked")){
+        slide = 2;
+    }else if($("#photo4Slide").prop("checked")){
+        slide = 4;
+    }else if($("#photo6Slide").prop("checked")){
+        slide = 6;
+    }
+    var soLuong = 0;   
+
+    soLuong = Math.ceil($('#soTrangPhoto').val()/(photo2Mat*slide));  
+
+    var donGia = $('#donGiaPhoto').val();
+    var soBan = $('#soBanPhoto').val();
+    var giaThem = 0;
+
+    if($('#photoBia').prop("checked")){
+        giaThem += 3000;
+    }
+    if($('#photoBiaKieng').prop("checked")){
+        giaThem += 3000;
+    }
+    debugger
+    console.log(soLuong, donGia, soBan, giaThem);
+    var thanhTien = (soLuong * donGia * soBan) + giaThem;
+    $('#thanhTienPhoto').val(Number(thanhTien).toLocaleString("vi-VN"));
+});
+
