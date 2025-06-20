@@ -1,44 +1,43 @@
 <?php
-require '../vendor/autoload.php'; // Đảm bảo đã cài đặt phpoffice/phpword qua Composer
-
+require '../vendor/autoload.php';
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
     $imagePaths = [];
     foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-        if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
+        if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK && getimagesize($tmpName) !== false) {
             $imagePaths[] = $tmpName;
         }
     }
 
     if (!empty($imagePaths)) {
-        // Định dạng kích thước theo inch -> mm
-        $heightInch = 1.58;
-        $widthInch = 1.18;
-        $heightMM = $heightInch * 25.4;
-        $widthMM = $widthInch * 25.4;
-
         $phpWord = new PhpWord();
         $section = $phpWord->addSection();
 
+        // Kích thước chính xác
+        $widthMM = 1.18 * 72;   
+        $heightMM = 1.57 * 72;  
+
         foreach ($imagePaths as $img) {
-            $section->addImage($img, [
-    		'width' => $widthInch ,   // 1.18 inch sang mm
-    		'height' => $heightInch ,  // 1.58 inch sang mm
-		]);
+            $section->addImage(
+                $img,
+                [
+                    'width' => $widthMM,
+                    'height' => $heightMM,
+		'wrappingStyle'    => 'tight', // Tùy chọn wrapping text
+                     'positioning'      => 'relative',
+                ]
+            );
             $section->addTextBreak(1);
         }
 
-        // Xuất file về trình duyệt
-        header("Content-Description: File Transfer");
-        header('Content-Disposition: attachment; filename="anh_xuat_word.docx"');
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename="anh.docx"');
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         $writer = IOFactory::createWriter($phpWord, 'Word2007');
         $writer->save("php://output");
         exit;
-    } else {
-        echo '<p style="color:red">Không có ảnh hợp lệ được tải lên!</p>';
     }
 }
 ?>
