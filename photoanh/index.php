@@ -4,6 +4,10 @@ use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
+    $soLuong = isset($_POST['soluong']) ? intval($_POST['soluong']) : 1;
+    if ($soLuong < 1) $soLuong = 1;
+
+    // Lấy danh sách ảnh hợp lệ
     $imagePaths = [];
     foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
         if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK && getimagesize($tmpName) !== false) {
@@ -15,29 +19,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
         $phpWord = new PhpWord();
         $section = $phpWord->addSection();
 
-        // Kích thước chính xác
+        // Kích thước ảnh
         $widthMM = 1.18 * 72;   
         $heightMM = 1.57 * 72;  
 
-        foreach ($imagePaths as $img) {
-            $section->addImage(
-                $img,
-                [
-                    'width' => $widthMM,
-                    'height' => $heightMM,
-		'wrappingStyle'    => 'tight', // Tùy chọn wrapping text
-                     'positioning'      => 'relative',
-                ]
-            );
-            $section->addTextBreak(1);
+        // Tạo bảng, mỗi dòng 3 ảnh
+        $tableStyle = [
+            'cellMargin' => 200 // Đặt margin cell (đơn vị twip, 1mm = ~56.7 twip)
+        ];
+        $cellStyle = [
+            'valign' => 'center',
+            'alignment' => \PhpOffice\PhpWord\SimpleType\JcTable::CENTER
+        ];
+        $imageStyle = [
+            'width' => $widthMM,
+            'height' => $heightMM,
+            'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER,
+            'marginLeft' => 300,   // Tăng margin trái/phải (twip), khoảng 5mm
+            'marginRight' => 300,
+        ];
+        $table = $section->addTable($tableStyle);
+        $imgCount = 0;
+
+        for ($i = 0; $i < $soLuong; $i++) {
+            // Lặp lại ảnh nếu số lượng lớn hơn số file upload
+            $img = $imagePaths[$i % count($imagePaths)];
+            if ($imgCount % 5 == 0) {
+                $table->addRow();
+            }
+            $table->addCell()->addImage($img, [
+                'width' => $widthMM,
+                'height' => $heightMM,
+                'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER,
+            ]);
+            $imgCount++;
         }
 
+        // Xuất file về trình duyệt
         header('Content-Description: File Transfer');
-        header('Content-Disposition: attachment; filename="anh.docx"');
+        header('Content-Disposition: attachment; filename="xuat_anh.docx"');
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         $writer = IOFactory::createWriter($phpWord, 'Word2007');
         $writer->save("php://output");
         exit;
+    } else {
+        echo '<p style="color:red">Không có ảnh hợp lệ để xuất!</p>';
     }
 }
 ?>
@@ -103,6 +129,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
     <form method="POST" enctype="multipart/form-data">
         <label for="images">Ảnh (jpg, jpeg, png):</label><br>
         <input type="file" name="images[]" id="images" multiple accept=".jpg,.jpeg,.png" required><br><br>
+	    <label for="soluong">Số lượng ảnh xuất ra:</label><br>
+	    <input type="number" min="1" name="soluong" id="soluong" value="1" required><br><br>
         <button type="submit">Tạo file Word</button>
     </form>
 </body>
