@@ -4,68 +4,40 @@ use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
-    $soLuong = isset($_POST['soluong']) ? intval($_POST['soluong']) : 1;
-    $kieuanh = isset($_POST['kieuanh']) ? intval($_POST['kieuanh']) : "34";
-    if ($soLuong < 1) $soLuong = 1;
+    $soLuong = 0;
 
     // Lấy danh sách ảnh hợp lệ
     $imagePaths = [];
     foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
         if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK && getimagesize($tmpName) !== false) {
             $imagePaths[] = $tmpName;
+            $soLuong++;
         }
     }
-
     if (!empty($imagePaths)) {
         $phpWord = new PhpWord();
-        $section = $phpWord->addSection();
-        $num_img_one_row = 5;
         // Kích thước ảnh
-        if($kieuanh == "34"){
-            $widthMM = 1.18 * 72;   
-            $heightMM = 1.57 * 72;  
-            $num_img_one_row = 5;
-        }else if($kieuanh == "46"){
-            $widthMM = 1.57 * 72;   
-            $heightMM = 2.36 * 72;
-            $num_img_one_row = 3; 
-        }else{
-            $widthMM = 1.18 * 72;   
-            $heightMM = 1.57 * 72;  
-            $num_img_one_row = 5;
-        }
-
-        // Tạo bảng, mỗi dòng 3 ảnh
-        $tableStyle = [
-            'cellMargin' => 200 // Đặt margin cell (đơn vị twip, 1mm = ~56.7 twip)
-        ];
-        $cellStyle = [
-            'valign' => 'center',
-            'alignment' => \PhpOffice\PhpWord\SimpleType\JcTable::CENTER
-        ];
-        $imageStyle = [
-            'width' => $widthMM,
-            'height' => $heightMM,
-            'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER,
-            'marginLeft' => 300,   // Tăng margin trái/phải (twip), khoảng 5mm
-            'marginRight' => 300,
-        ];
-        $table = $section->addTable($tableStyle);
-        $imgCount = 0;
-
+        $widthMM = 7.34 * 72;   
+        $heightMM = 10.39 * 72; 
         for ($i = 0; $i < $soLuong; $i++) {
-            // Lặp lại ảnh nếu số lượng lớn hơn số file upload
             $img = $imagePaths[$i % count($imagePaths)];
-            if ($imgCount % $num_img_one_row == 0) {
-                $table->addRow();
-            }
-            $table->addCell()->addImage($img, [
+            
+            // Tạo section mới cho mỗi ảnh
+            $section = $phpWord->addSection([
+                'marginTop' => 600,
+                'marginBottom' => 600,
+                'marginLeft' => 600,
+                'marginRight' => 600,
+            ]);
+            
+            // Thêm ảnh vào giữa trang
+            $section->addImage($img, [
                 'width' => $widthMM,
                 'height' => $heightMM,
                 'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER,
             ]);
-            $imgCount++;
         }
+
 
         // Xuất file về trình duyệt
         header('Content-Description: File Transfer');
@@ -147,19 +119,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
     <form method="POST" enctype="multipart/form-data">
         <label for="images">Ảnh (jpg, jpeg, png):</label><br>
         <input type="file" name="images[]" id="images" multiple accept=".jpg,.jpeg,.png" required><br><br>
-        <div class="boxType">
-            <div class="boxTypeChild">
-                <label for="" >Ảnh 3x4</label>
-                <input type="radio" name="kieuanh" checked value="34">
-            </div>
-            <div class="boxTypeChild">
-                <label for="">Ảnh 4x6</label>
-                <input type="radio" name="kieuanh" value="46">
-            </div>            
-        </div>
-        
-	    <label for="soluong">Số lượng ảnh xuất ra:</label><br>
-	    <input type="number" min="1" name="soluong" id="soluong" value="1" required><br><br>
         <button type="submit">Tạo file Word</button>
     </form>
 </body>
