@@ -34,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
             $section->addImage($img, [
                 'width' => $widthMM,
                 'height' => $heightMM,
-                'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER,
+                'posHorizontal' => \PhpOffice\PhpWord\Style\Image::POSITION_HORIZONTAL_CENTER,
+                'posVertical' => \PhpOffice\PhpWord\Style\Image::POSITION_VERTICAL_CENTER,
             ]);
         }
 
