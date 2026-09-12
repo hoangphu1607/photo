@@ -1,52 +1,78 @@
 <?php
 require '../vendor/autoload.php';
+
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\SimpleType\Jc;
+use PhpOffice\PhpWord\Style\Image;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['images'])) {
-    $soLuong = 0;
 
-    // Lấy danh sách ảnh hợp lệ
     $imagePaths = [];
+
+    // Duyệt toàn bộ ảnh được upload
     foreach ($_FILES['images']['tmp_name'] as $key => $tmpName) {
-        if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK && getimagesize($tmpName) !== false) {
-            $imagePaths[] = $tmpName;
-            $soLuong++;
+
+        // Kiểm tra lỗi upload
+        if ($_FILES['images']['error'][$key] !== UPLOAD_ERR_OK) {
+            continue;
         }
+
+        // Kiểm tra file có thực sự là ảnh
+        if (!file_exists($tmpName)) {
+            continue;
+        }
+
+        if (getimagesize($tmpName) === false) {
+            continue;
+        }
+
+        $imagePaths[] = $tmpName;
     }
+
+    // Kiểm tra có ảnh hợp lệ hay không
     if (!empty($imagePaths)) {
+
         $phpWord = new PhpWord();
-        // Kích thước ảnh
-        $widthMM = 7.34 * 72;   
-        $heightMM = 10.39 * 72; 
-        for ($i = 0; $i < $soLuong; $i++) {
-            $img = $imagePaths[$i % count($imagePaths)];
-            
-            // Tạo section mới cho mỗi ảnh
+
+        // Kích thước ảnh theo point
+        // 7.34 cm = khoảng 208 point
+        // 10.39 cm = khoảng 295 point
+        $width = 208;
+        $height = 295;
+
+        // Duyệt từng ảnh
+        foreach ($imagePaths as $img) {
+
+            // Mỗi ảnh một trang Word
             $section = $phpWord->addSection([
                 'marginTop' => 600,
                 'marginBottom' => 600,
                 'marginLeft' => 600,
                 'marginRight' => 600,
             ]);
-            
-            // Thêm ảnh vào giữa trang
+
+            // Thêm ảnh vào section
             $section->addImage($img, [
-                'width' => $widthMM,
-                'height' => $heightMM,
-                'posHorizontal' => \PhpOffice\PhpWord\Style\Image::POSITION_HORIZONTAL_CENTER,
-                'posVertical' => \PhpOffice\PhpWord\Style\Image::POSITION_VERTICAL_CENTER,
+                'width' => $width,
+                'height' => $height,
+                'alignment' => Jc::CENTER,
+                'posHorizontal' => Image::POSITION_HORIZONTAL_CENTER,
+                'posVertical' => Image::POSITION_VERTICAL_CENTER,
             ]);
         }
 
-
-        // Xuất file về trình duyệt
+        // Xuất file Word
         header('Content-Description: File Transfer');
         header('Content-Disposition: attachment; filename="xuat_anh.docx"');
         header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        header('Cache-Control: max-age=0');
+
         $writer = IOFactory::createWriter($phpWord, 'Word2007');
-        $writer->save("php://output");
+        $writer->save('php://output');
+
         exit;
+
     } else {
         echo '<p style="color:red">Không có ảnh hợp lệ để xuất!</p>';
     }
