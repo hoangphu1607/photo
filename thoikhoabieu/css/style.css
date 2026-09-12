@@ -1,0 +1,64 @@
+    .parent {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(6, 1fr);
+        grid-column-gap: 0px;
+        grid-row-gap: 0px;
+    }
+    
+    .div1 { grid-area: 1 / 1 / 4 / 4; }
+
+    .custom-card {
+        position: relative;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Hiệu ứng bóng */
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .card-label {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background-color: rgb(38, 0, 255);
+        color: white;
+        padding: 5px 10px;
+        font-size: 14px;
+        font-weight: bold;
+        border-radius: 5px;
+    }
+    .card-body{
+        padding-top: 50px;
+    }
+    .ingput-tinhtien{
+        text-align: right;
+    }
+    .form-control {
+        margin: 10px 0;
+    }
+    .btn-tinhtien{
+        display: block;
+    }
+    .img-refesh{
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+    }
+    .btn-refesh{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: yellow;
+    }
+    input[type=checkbox], input[type=radio]{
+        accent-color: #1123a3;
+        width: 20px;
+        height: 20px;
+    }
+    .form-check-label {
+        margin-bottom: 0;
+        padding-left: 10px;
+        padding-top: 3px;
+    }
+    .form-check {        
+        display: flex;
+        align-items: center;
+    }
